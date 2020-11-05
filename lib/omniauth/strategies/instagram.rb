@@ -4,22 +4,22 @@ module OmniAuth
   module Strategies
     class Instagram < OmniAuth::Strategies::OAuth2
       option :client_options,         site: 'https://api.instagram.com',
-                                      authorize_url: 'https://api.instagram.com/oauth/authorize',
-                                      token_url: 'https://api.instagram.com/oauth/access_token'
+             authorize_url: 'https://api.instagram.com/oauth/authorize',
+             token_url: 'https://api.instagram.com/oauth/access_token'
 
       def callback_url
         full_host + script_name + callback_path
       end
 
       def request_phase
-        options[:scope] ||= 'basic'
+        options[:scope] ||= 'user_profile,user_media'
         options[:response_type] ||= 'code'
         options[:enforce_signed_requests] ||= false
         options[:extra_data] ||= false
         super
       end
 
-      uid { raw_info['id'] }
+      uid { raw_info['user_id'] }
 
       info do
         {
@@ -47,7 +47,7 @@ module OmniAuth
           params['sig'] = generate_sig(endpoint, 'access_token' => access_token.token) if options[:enforce_signed_requests]
           @data ||= access_token.get("/v1#{endpoint}", params: params).parsed['data'] || {}
         else
-          @data ||= access_token.params['user']
+          @data ||= access_token.params
         end
         @data
       end
